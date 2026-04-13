@@ -1,0 +1,8 @@
+{
+  "name": "my-electron-todo",
+  "version": "1.0.0",
+  "main": "src/main/main.js",
+  "scripts": {
+    "start": "electron ."
+  }
+}
