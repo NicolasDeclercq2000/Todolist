@@ -1,8 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
-// --- DÉCLARATION DE L'API ELECTRON (Pour éviter les erreurs TypeScript) ---
+// --- DÉCLARATION DE L'INTERFACE ELECTRON ---
+// Cela permet à TypeScript de reconnaître window.electronAPI sans erreur
 declare global {
   interface Window {
     electronAPI: {
@@ -23,36 +24,56 @@ export class AppComponent implements OnInit {
   tasks: string[] = [];
   newTask: string = '';
 
-  // Cette fonction s'exécute dès que l'app Angular est prête
+  // On injecte le ChangeDetectorRef pour forcer la mise à jour de la vue
+  constructor(private cdr: ChangeDetectorRef) {}
+
+  /**
+   * Initialisation du composant :
+   * On récupère les tâches stockées via le pont Electron (Preload).
+   */
   async ngOnInit() {
     try {
-      // On demande au processus Main via le Preload de charger les tâches
       const savedTasks = await window.electronAPI.loadTasks();
       if (savedTasks) {
         this.tasks = savedTasks;
+        // On force Angular à rafraîchir l'affichage car la donnée 
+        // arrive d'un processus externe (Electron)
+        this.cdr.detectChanges();
       }
-    } catch (e) {
-      console.error("Erreur lors du chargement des tâches :", e);
+    } catch (error) {
+      console.error("Impossible de charger les tâches depuis Electron :", error);
     }
   }
 
-  // Ajouter une tâche à la liste
+  /**
+   * Ajoute une nouvelle tâche à la liste et déclenche la sauvegarde.
+   */
   addTask() {
-    if (this.newTask.trim() !== '') {
-      this.tasks.push(this.newTask.trim());
+    const taskToAdd = this.newTask.trim();
+    if (taskToAdd !== '') {
+      this.tasks.push(taskToAdd);
       this.save();
-      this.newTask = ''; // On vide le champ de saisie
+      this.newTask = ''; // On vide le champ après l'ajout
     }
   }
 
-  // Supprimer une tâche via son index
+  /**
+   * Supprime une tâche de la liste via son index et sauvegarde.
+   */
   deleteTask(index: number) {
     this.tasks.splice(index, 1);
     this.save();
   }
 
-  // Envoyer la liste mise à jour au processus Main pour sauvegarde sur le disque
+  /**
+   * Envoie la liste actuelle des tâches vers le processus Main (via Preload)
+   * pour l'écriture dans le fichier de stockage.
+   */
   private save() {
-    window.electronAPI.saveTasks(this.tasks);
+    try {
+      window.electronAPI.saveTasks(this.tasks);
+    } catch (error) {
+      console.error("Erreur lors de la sauvegarde :", error);
+    }
   }
 }
