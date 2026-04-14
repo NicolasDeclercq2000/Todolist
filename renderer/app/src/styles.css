@@ -1,1 +1,26 @@
-/* You can add global styles to this file, and also import other style files */
+/* Supprime les marges par défaut et met le fond en noir partout */
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background-color: #1e1e1e; /* La même couleur que ton thème sombre */
+  overflow-x: hidden; /* Évite les barres de défilement horizontales bizarres */
+}
+
+/* Optionnel : rend la barre de défilement plus discrète (style macOS sombre) */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1e1e1e;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #3d3d3d;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #4d4d4d;
+}
