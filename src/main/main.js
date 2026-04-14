@@ -14,8 +14,10 @@ function createWindow() {
         }
     });
 
-    // On remonte d'un dossier (main -> src) puis on descend dans renderer
-    win.loadFile(path.join(__dirname, '../renderer/index.html'));
+    // On part de src/main
+    // ../../ remonte à la racine TODOLIST
+    // On descend ensuite dans renderer/app/dist/app/browser/index.html
+    win.loadFile(path.join(__dirname, '../../renderer/app/dist/app/browser/index.html'));
 }
 
 // --- Gestion des communications (IPC) ---
