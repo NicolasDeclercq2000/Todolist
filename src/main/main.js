@@ -1,38 +1,55 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
-const storage = require('./save'); // Import de notre module
+const fs = require('fs');
+const storage = require('./save'); // Ton fichier de sauvegarde
 
 function createWindow() {
     const win = new BrowserWindow({
-        width: 800,
-        height: 600,
+        width: 1000,
+        height: 800,
         webPreferences: {
-            // On remonte d'un dossier (main -> src) puis on descend dans preload
+            // Le preload est dans src/preload/preload.js
             preload: path.join(__dirname, '../preload/preload.js'),
             contextIsolation: true,
             nodeIntegration: false
         }
     });
 
-    // On part de src/main
-    // ../../ remonte à la racine TODOLIST
-    // On descend ensuite dans renderer/app/dist/app/browser/index.html
-    win.loadFile(path.join(__dirname, '../../renderer/app/dist/app/browser/index.html'));
+    // --- CONSTRUCTION DU CHEMIN ANGULAR ---
+    
+    // On définit les deux chemins possibles (avec ou sans /browser)
+    const pathWithBrowser = path.resolve(__dirname, '../../renderer/app/dist/app/browser/index.html');
+    const pathSimple = path.resolve(__dirname, '../../renderer/app/dist/app/index.html');
+
+    // On teste quel fichier existe réellement sur ton Mac
+    if (fs.existsSync(pathWithBrowser)) {
+        console.log("✅ Chargement depuis : dist/app/browser/");
+        win.loadFile(pathWithBrowser);
+    } else if (fs.existsSync(pathSimple)) {
+        console.log("✅ Chargement depuis : dist/app/");
+        win.loadFile(pathSimple);
+    } else {
+        // Si aucun n'existe, on affiche une erreur claire dans ton terminal
+        console.error("❌ ERREUR CRITIQUE : Fichier index.html introuvable !");
+        console.error("Vérifie que tu as bien lancé : ng build --base-href ./");
+        console.log("Chemin tenté : " + pathWithBrowser);
+    }
+
+    // Optionnel : ouvre les outils de dév pour voir les erreurs Angular
+    // win.webContents.openDevTools();
 }
 
-// --- Gestion des communications (IPC) ---
+// --- COMMUNICATION IPC (Sauvegarde) ---
 
-// Écoute l'enregistrement
 ipcMain.on('save-tasks', (event, tasks) => {
     storage.save(tasks);
 });
 
-// Gère la demande de chargement (retourne une valeur)
 ipcMain.handle('load-tasks', () => {
     return storage.load();
 });
 
-// --- Cycle de vie de l'app ---
+// --- CYCLE DE VIE ---
 
 app.whenReady().then(createWindow);
 

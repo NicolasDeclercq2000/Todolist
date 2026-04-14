@@ -1,0 +1,13 @@
+<div style="padding: 20px;">
+  <h1>Todo List Angular + Electron</h1>
+  
+  <input [(ngModel)]="newTask" (keyup.enter)="addTask()" placeholder="Ajouter une tâche">
+  <button (click)="addTask()">Ajouter</button>
+
+  <ul style="margin-top: 20px;">
+    <li *ngFor="let task of tasks; let i = index" style="margin-bottom: 10px;">
+      {{ task }} 
+      <button (click)="deleteTask(i)" style="color: red;">Supprimer</button>
+    </li>
+  </ul>
+</div>
